@@ -28,7 +28,7 @@ Here are some methods to detect suspicious DLLs:
 }
 
 
-**### 2. Monitoring DllImport Usage**
+### 2. Monitoring DllImport Usage
 
 `DllImport` is an attribute in .NET that allows managed code to call functions from unmanaged DLLs. While commonly used by legitimate applications, it can be leveraged by attackers to:
 
@@ -41,7 +41,7 @@ Get-Process | ForEach-Object {
     $_.Modules | Select-Object ModuleName, FileName
 }
 
-**### 3. Detect Dynamic Assemblies**
+### 3. Detect Dynamic Assemblies
 `DefineMethod` is part of the .NET `System.Reflection.Emit` namespace. It allows developers—or attackers—to generate methods at runtime, which can:
 
 - Load malicious DLLs directly into memory  
