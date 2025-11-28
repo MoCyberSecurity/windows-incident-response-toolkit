@@ -25,7 +25,7 @@ Here are some methods to detect suspicious DLLs:
 # List loaded assemblies
 [AppDomain]::CurrentDomain.GetAssemblies() | ForEach-Object {
     $_.Location
-}
+}```
 
 
 
