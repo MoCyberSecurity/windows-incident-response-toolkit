@@ -41,7 +41,7 @@ Here are some methods to detect suspicious DLLs:
 Get-Process | ForEach-Object {
     $_.Modules | Select-Object ModuleName, FileName
 }
-
+```
 ### 3. Detect Dynamic Assemblies
 `DefineMethod` is part of the .NET `System.Reflection.Emit` namespace. It allows developers—or attackers—to generate methods at runtime, which can:
 
