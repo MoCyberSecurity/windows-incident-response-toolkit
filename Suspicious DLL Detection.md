@@ -22,6 +22,12 @@ Here are some methods to detect suspicious DLLs:
 `Add-Type` allows scripts to compile and load C# code on the fly. Attackers can abuse this to load malicious DLLs:
 
 
+```powershell
+# List loaded assemblies
+[AppDomain]::CurrentDomain.GetAssemblies() | ForEach-Object {
+    $_.Location
+}
+```
 
 ### 2. Monitoring DLL Import
 
