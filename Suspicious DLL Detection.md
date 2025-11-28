@@ -16,8 +16,19 @@ This repository focuses on identifying DLLs loaded via unusual methods such as:
 ## Detection Techniques via Windows CMD / PowerShell
 
 Here are some methods to detect suspicious DLLs:
+### 1. List Running Processes
+```cmd
+tasklist
+```
+Shows all running processes and their basic information.
 
-### 1. Using PowerShell `Add-Type`
+Can help identify suspicious processes to investigate further.
+
+```cmd
+tasklist /m suspicious.dll
+```
+This is a quick way to identify suspicious DLLs without additional tools.
+### 2. Using PowerShell `Add-Type`
 
 `Add-Type` allows scripts to compile and load C# code on the fly. Attackers can abuse this to load malicious DLLs:
 
@@ -29,7 +40,7 @@ Here are some methods to detect suspicious DLLs:
 }
 ```
 
-### 2. Monitoring DLL Import
+### 3. Monitoring DLL Import
 
 `DllImport` is an attribute in .NET that allows managed code to call functions from unmanaged DLLs. While commonly used by legitimate applications, it can be leveraged by attackers to:
 
@@ -42,7 +53,7 @@ Get-Process | ForEach-Object {
     $_.Modules | Select-Object ModuleName, FileName
 }
 ```
-### 3. Detect Dynamic Assemblies
+### 4. Detect Dynamic Assemblies
 `DefineMethod` is part of the .NET `System.Reflection.Emit` namespace. It allows developers—or attackers—to generate methods at runtime, which can:
 
 - Load malicious DLLs directly into memory  
