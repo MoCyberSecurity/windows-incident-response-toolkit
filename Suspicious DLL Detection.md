@@ -28,7 +28,8 @@ Here are some methods to detect suspicious DLLs:
 }
 
 
-### 2. Monitoring DllImport Usage
+
+### 2. Monitoring DLL Import
 
 `DllImport` is an attribute in .NET that allows managed code to call functions from unmanaged DLLs. While commonly used by legitimate applications, it can be leveraged by attackers to:
 
