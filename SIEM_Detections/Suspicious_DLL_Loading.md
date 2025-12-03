@@ -261,25 +261,21 @@ Exclude trusted signed hashes
 Limit to abnormal parent + anomalous path combinations
 
 ## 9. Detection Coverage Summary
-Detection Logic	ATT&CK Technique
-User-writable DLL Paths	T1574.001
-LOLBins DLL loading	T1129
-Signed binary loading unsigned DLL	T1574
-DLL filename masquerading	T1574.001
-10. Detection Outcome
+# 9. Detection Coverage Summary
 
-This detection package provides:
+This section maps each detection logic to the corresponding MITRE ATT&CK technique, providing clear coverage for SOC analysts.
 
-✅ High-fidelity alerts for DLL side-loading abuse
-✅ SOC-ready SIEM queries
-✅ Cross-platform detection with Sigma
-✅ ATT&CK-mapped threat coverage
-✅ Analyst response guidance
-
+| Detection Logic | ATT&CK Technique | Technique ID | Description |
+|-----------------|-----------------|--------------|-------------|
+| User-writable DLL Paths | DLL Search Order Hijacking | **T1574.001** | Detects DLLs loaded from user-writable or temporary directories, often used in side-loading attacks. |
+| LOLBins DLL loading | Shared Modules | **T1129** | Detects abnormal DLL loads by living-off-the-land binaries like rundll32.exe, mshta.exe, powershell.exe, etc. |
+| Signed binary loading unsigned DLL | Hijack Execution Flow | **T1574** | Detects unsigned DLLs loaded by signed binaries to evade defenses. |
+| DLL filename masquerading | DLL Search Order Hijacking | **T1574.001** | Detects system DLL names loaded from non-standard locations, a common persistence or evasion technique. |
 
 ---
 
-This is fully self-contained, professional, and ready for GitHub.  
+### Notes:
 
-If you want, I can **also create a companion section for PowerShell obfuscation detection** in the exact same polished format, so your toolkit grows consistently. Do you want me to do that next?
-
+- This summary helps map detection rules to MITRE ATT&CK for reporting and SOC alignment.
+- Ensures coverage across **Execution, Persistence, Defense Evasion, and Lateral Movement** tactics.
+- Supports both technical investigations and management reporting for security operations.
