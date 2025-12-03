@@ -201,7 +201,7 @@ tags:
   - attack.defense_evasion
   - detection.dll_sideloading
 ```
-7. SOC Analyst Triage Workflow
+## 7. SOC Analyst Triage Workflow
 ✅ Step 1 — Validate Load Location
 
 Was the DLL loaded from a legitimate vendor directory?
@@ -242,7 +242,7 @@ Block hashes exposure-wide
 
 Credential reset if compromise confirmed
 
-8. False Positive Tuning
+## 8. False Positive Tuning
 
 Expected benign triggers:
 
@@ -260,7 +260,7 @@ Exclude trusted signed hashes
 
 Limit to abnormal parent + anomalous path combinations
 
-9. Detection Coverage Summary
+## 9. Detection Coverage Summary
 Detection Logic	ATT&CK Technique
 User-writable DLL Paths	T1574.001
 LOLBins DLL loading	T1129
