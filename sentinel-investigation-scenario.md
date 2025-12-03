@@ -47,8 +47,6 @@ Shows an attempt to download and execute a remote PowerShell payload.
     Source Network Address: 192.168.54.22
     ```
 
-
-
 Logon Type 3 indicates a network logon, often used in lateral movement.
 
 </details> <details> <summary>3. Defender Alert (If Integrated)</summary>
