@@ -103,7 +103,7 @@ DeviceImageLoadEvents
           InitiatingProcessFileName, InitiatingProcessCommandLine,
           SHA256
 ```
-## 5. LOLBins Performing DLL Side-Loading
+## 🧠 Detection - LOLBins Performing DLL Side-Loading
 
 ```kql
 DeviceImageLoadEvents
@@ -115,4 +115,171 @@ DeviceImageLoadEvents
           InitiatingProcessFileName,
           SHA256
 ```
+
+## 🧠 Detection - Unsigned DLL Loaded by Signed Binary
+```kql
+DeviceImageLoadEvents
+| where IsUnsigned == true
+| where InitiatingProcessSignatureStatus == "Signed"
+| project Timestamp, DeviceName, FileName, FolderPath,
+          InitiatingProcessFileName,
+          SHA256
+```
+## 🧠 Detection – System DLL Name Loaded Outside System32
+```kql
+let SYSTEM_DLLS = dynamic([
+  "dbghelp.dll","version.dll","wininet.dll",
+  "bcrypt.dll","cryptbase.dll","kernel32.dll"
+]);
+
+DeviceImageLoadEvents
+| where FileName in~ (SYSTEM_DLLS)
+| where FolderPath !startswith "C:\\Windows\\System32\\"
+| project Timestamp, DeviceName,
+          InitiatingProcessFileName,
+          FileName,
+          FolderPath,
+          SHA256
+```
+## 5. Splunk Detection Queries
+## 🔍 DLL Loaded from User-Writable Paths
+```kql
+index=endpoint ImageLoaded="*.dll"
+| search ImageLoaded="*\\Users\\*" OR
+         ImageLoaded="*\\Temp\\*" OR
+         ImageLoaded="*\\AppData\\*" OR
+         ImageLoaded="*\\Downloads\\*"
+| table _time host ParentImage ImageLoaded CommandLine SHA256
+```
+## 🔧 Rundll32 Side-Load Detection
+```kql
+index=endpoint ParentImage="*rundll32.exe"
+ImageLoaded!="*\\Windows\\System32\\*"
+| table _time host ParentImage ImageLoaded CommandLine SHA256
+```
+## Unsigned DLL Triggered by Signed Process
+```kql
+index=endpoint SignatureStatus="Unsigned"
+ParentSignatureStatus="Signed"
+| table _time host ParentImage ImageLoaded SHA256
+```
+## 6. Sima Detection Rule
+```yaml
+title: Suspicious DLL Loaded From Writable Directory
+id: mo-4f21c110-dll-sideload
+status: stable
+description: >
+  Detects DLL loading from user-writable or temporary paths.
+  Common in DLL side-loading and execution flow hijacking.
+author: MoCyberSecurity
+date: 2025-11-30
+
+references:
+  - https://attack.mitre.org/techniques/T1574/001/
+
+logsource:
+  product: windows
+  category: image_load
+
+detection:
+  writable_paths:
+    ImageLoaded|contains:
+      - '\Users\'
+      - '\Temp\'
+      - '\Downloads\'
+      - '\AppData\'
+
+  dll_extension:
+    ImageLoaded|endswith: '.dll'
+
+  condition: writable_paths and dll_extension
+
+level: high
+
+tags:
+  - attack.t1574.001
+  - attack.defense_evasion
+  - detection.dll_sideloading
+```
+7. SOC Analyst Triage Workflow
+✅ Step 1 — Validate Load Location
+
+Was the DLL loaded from a legitimate vendor directory?
+
+Does the parent binary normally load this module?
+
+✅ Step 2 — Review Process Lineage
+
+Parent fired by Office or browser?
+
+Involved LOLbins or script engines?
+
+Elevated token presence?
+
+✅ Step 3 — Reputation Analysis
+
+Check SHA256 on VirusTotal / Hybrid-Analysis
+
+Verify digital signature & certificate trust chain
+
+✅ Step 4 — Host Investigation
+
+File creation events for DLL drop
+
+Registry autoruns or services for persistence
+
+Network connections following execution
+
+Lateral movement evidence
+
+✅ Step 5 — Response Actions
+
+Isolate device via EDR
+
+Quarantine DLL and parent binary
+
+Block hashes exposure-wide
+
+Credential reset if compromise confirmed
+
+8. False Positive Tuning
+
+Expected benign triggers:
+
+Software installers and updaters
+
+Electron & app extensions in %AppData%
+
+Internally developed business applications
+
+Filtering strategies:
+
+Maintain vendor DLL allowlists
+
+Exclude trusted signed hashes
+
+Limit to abnormal parent + anomalous path combinations
+
+9. Detection Coverage Summary
+Detection Logic	ATT&CK Technique
+User-writable DLL Paths	T1574.001
+LOLBins DLL loading	T1129
+Signed binary loading unsigned DLL	T1574
+DLL filename masquerading	T1574.001
+10. Detection Outcome
+
+This detection package provides:
+
+✅ High-fidelity alerts for DLL side-loading abuse
+✅ SOC-ready SIEM queries
+✅ Cross-platform detection with Sigma
+✅ ATT&CK-mapped threat coverage
+✅ Analyst response guidance
+
+
+---
+
+This is fully self-contained, professional, and ready for GitHub.  
+
+If you want, I can **also create a companion section for PowerShell obfuscation detection** in the exact same polished format, so your toolkit grows consistently. Do you want me to do that next?
 
