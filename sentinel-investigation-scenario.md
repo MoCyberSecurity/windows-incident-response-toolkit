@@ -42,10 +42,13 @@ Shows an attempt to download and execute a remote PowerShell payload.
 
 </details> <details> <summary>2. Logon Event (Event 4624)</summary>
 ```text
-Account Name: jason.raymond
-Logon Type: 3
-Source Network Address: 192.168.54.22
-```
+    Account Name: jason.raymond
+    Logon Type: 3
+    Source Network Address: 192.168.54.22
+    ```
+
+
+
 Logon Type 3 indicates a network logon, often used in lateral movement.
 
 </details> <details> <summary>3. Defender Alert (If Integrated)</summary>
