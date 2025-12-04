@@ -235,3 +235,28 @@ DeviceNetworkEvents
 
 - Low-volume periodic callbacks indicative of beaconing
 
+---
+
+## 🔁 Phase 6 – Lateral Scope Analysis
+
+Using IOC pivoting across the DNS telemetry:
+
+---
+
+### KQL – Endpoint Pivot
+
+```kql
+DeviceNetworkEvents
+| where RemoteUrl contains "sync-data-cloud"
+| summarize CompromisedDevices=make_set(DeviceName)
+```
+
+- Confirmed Compromised Devices
+  - FIN-WS-02
+  - OPS-WS-07
+  - LOG-WS-12
+  - HR-WS-04
+
+- Total affected endpoints: 4
+
+
