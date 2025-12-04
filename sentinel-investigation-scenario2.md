@@ -67,7 +67,7 @@ DeviceProcessEvents
           InitiatingProcessFileName, ProcessCommandLine
 | order by TimeGenerated asc
 ```
-** Findings **
+**Finding**
 
 Four workstations executed PowerShell with encoded commands.
 The parent process on all systems was:
