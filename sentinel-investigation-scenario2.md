@@ -175,3 +175,36 @@ DeviceEvents
 ```
 Base64 strings were exported for offline forensic decoding.
 
+---
+
+## 🧪 Phase 4 – PowerShell Payload Decoding
+
+---
+
+### PowerShell – Decode Payload Script
+
+```powershell
+param (
+    [Parameter(Mandatory)]
+    [string]$EncodedInputFile
+)
+
+$rawData = Get-Content $EncodedInputFile -Raw
+
+$decoded = [System.Text.Encoding]::Unicode.GetString(
+    [Convert]::FromBase64String($rawData)
+)
+
+$decoded | Out-File ".\decoded_script.txt"
+
+Write-Host "[+] Payload successfully decoded"
+```
+### Analysis Results
+
+- DNS-over-HTTPS beacon creation
+
+- HTTP POST data exfiltration attempts
+
+- Registry persistence modification
+
+- Periodic C2 check-ins
