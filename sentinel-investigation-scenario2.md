@@ -327,3 +327,18 @@ foreach ($host in $Hosts) {
 - Persistence via HKCU Run registry keys
 
 - Scheduled background PowerShell tasks set to run hourly on compromised hosts
+
+---
+
+## 🚑 Phase 9 – Containment & Eradication
+
+SOC response actions executed:
+
+- Host isolation via Defender  
+- Disabling compromised user credentials  
+- Blocking C2 infrastructure at Azure DNS and firewall  
+- Removing registry persistence keys  
+- Deleting malicious scheduled tasks  
+- Network-wide IOC detection sweeps
+
+---
