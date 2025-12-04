@@ -290,7 +290,6 @@ Write-Host "[+] Artifact hashes saved"
   "MD5": "bf92c19df77f08acb17c8ea9d9fd4d41",
   "SHA1": "d367a9c9f1b41d8f87a088f52820be0475de3705",
   "SHA256": "f1bc22345e74f6bd3c760c8678bc7ba71f44f205c4b14c8473dd918693fba7cc"
-}
-```
+}```
 
 
