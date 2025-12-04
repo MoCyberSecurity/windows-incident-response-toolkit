@@ -147,8 +147,8 @@ No evidence of additional recipients interacting with the phishing payload was d
 Initial access was achieved through a phishing campaign utilizing macro-enabled Office documents.
 User interaction triggered embedded macros executing encoded PowerShell payloads, initiating the malware dropper stage observed in later investigation phases.
 
-This established a clear and defensible initial access narrative aligned with the MITRE ATT&CK technique:
+- This established a clear and defensible initial access narrative aligned with the MITRE ATT&CK technique:
 
-T1566.001 — Phishing: Spearphishing Attachment
+         - T1566.001 — Phishing: Spearphishing Attachment
 
-T1059.001 — Command and Scripting Interpreter: PowerShell
+         - T1059.001 — Command and Scripting Interpreter: PowerShell
