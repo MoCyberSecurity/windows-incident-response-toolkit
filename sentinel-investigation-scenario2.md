@@ -292,4 +292,38 @@ Write-Host "[+] Artifact hashes saved"
   "SHA256": "f1bc22345e74f6bd3c760c8678bc7ba71f44f205c4b14c8473dd918693fba7cc"
 ```
 
+---
 
+## 🔎 Phase 8 – Host Persistence Scanning
+
+To validate eradication completeness, systems were scanned for persistence mechanisms.
+
+---
+
+### PowerShell – Compromise Scope Script
+
+**scope-compromise.ps1**
+
+```powershell
+$Hosts = Get-Content ".\endpoints.txt"
+
+foreach ($host in $Hosts) {
+
+    Invoke-Command -ComputerName $host -ScriptBlock {
+
+        "Checking Registry Run Keys..."
+        Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -ErrorAction SilentlyContinue
+
+        "Checking Scheduled Tasks..."
+        Get-ScheduledTask | Where-Object {
+            $_.Actions -match "powershell"
+        }
+    }
+
+}
+```
+### Findings
+
+- Persistence via HKCU Run registry keys
+
+- Scheduled background PowerShell tasks set to run hourly on compromised hosts
