@@ -152,3 +152,26 @@ User interaction triggered embedded macros executing encoded PowerShell payloads
          - T1566.001 — Phishing: Spearphishing Attachment
 
          - T1059.001 — Command and Scripting Interpreter: PowerShell
+
+
+---
+
+## ⚙ Phase 3 – Payload Collection
+
+PowerShell ScriptBlock logs were extracted to recover encoded malware payloads.
+
+---
+
+### KQL – ScriptBlock Extraction
+
+```kql
+DeviceEvents
+| where ActionType == "PowerShellScriptBlockExecuted"
+| where AdditionalFields has "FromBase64String"
+| project TimeGenerated,
+          DeviceName,
+          InitiatingProcessFileName,
+          AdditionalFields
+```
+Base64 strings were exported for offline forensic decoding.
+
