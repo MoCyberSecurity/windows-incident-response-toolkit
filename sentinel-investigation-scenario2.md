@@ -208,3 +208,30 @@ Write-Host "[+] Payload successfully decoded"
 - Registry persistence modification
 
 - Periodic C2 check-ins
+
+
+
+---
+
+## 🌐 Phase 5 – Command & Control Detection
+
+After extracting candidate domains from payload analysis, Sentinel telemetry was used to identify beaconing behavior.
+
+---
+
+### KQL – DNS Beacon Detection
+
+```kql
+DeviceNetworkEvents
+| where InitiatingProcessFileName == "powershell.exe"
+| summarize QueryCount=count() by DeviceName, RemoteUrl
+| where QueryCount between (7..30)
+| sort by QueryCount desc
+```
+### Suspicious Domain Identified
+- Domain age: < 72 hours
+
+- VPS hosting provider linked to prior abuse
+
+- Low-volume periodic callbacks indicative of beaconing
+
