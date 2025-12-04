@@ -342,3 +342,39 @@ SOC response actions executed:
 - Network-wide IOC detection sweeps
 
 ---
+---
+
+## 📑 Phase 10 – Final Incident Summary
+
+---
+
+### Threat Classification
+
+> Confirmed Malware Infection – PowerShell Loader with C2 Beacon Capability
+
+---
+
+### Incident Timeline
+
+1. Phishing email delivered  
+2. User opened malicious attachment  
+3. VBA macro executed  
+4. PowerShell payload launched  
+5. DNS beacon initiated  
+6. Sentinel alert triggers  
+7. SOC investigation opens  
+8. IOC extraction completed  
+9. Endpoints isolated  
+10. Threat eradicated
+
+---
+
+### Lessons Learned
+
+- Encoded PowerShell remains a highly effective malware delivery mechanism  
+- ScriptBlock logging is essential for payload reconstruction  
+- DNS analytics enable early C2 detection  
+- KQL correlation reduces investigation time significantly
+
+---
+
