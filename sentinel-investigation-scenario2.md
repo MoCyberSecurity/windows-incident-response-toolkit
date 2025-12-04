@@ -9,7 +9,7 @@
 
 ## 🎯 Scenario Overview
 
-**Company:** Valerian Logistics Ltd  
+**Company:** CompanyX Logistics Ltd  
 **Environment:** Hybrid Windows Active Directory + Azure Cloud  
 **Defensive Stack:** Microsoft Defender for Endpoint + Microsoft Sentinel  
 **SOC Role:** Tier 2 Incident Response Analyst
