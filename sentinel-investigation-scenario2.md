@@ -258,5 +258,39 @@ DeviceNetworkEvents
   - HR-WS-04
 
 - Total affected endpoints: 4
+---
+
+## 🧾 Phase 7 – Hash Collection
+
+To document forensic artifacts for threat intelligence sharing:
+
+---
+
+### PowerShell – Hash Extraction Script
+
+**hash-validation.ps1**
+
+```powershell
+param(
+    [string]$PathToArtifact
+)
+
+$hashResults = @{
+    "MD5"    = (Get-FileHash $PathToArtifact -Algorithm MD5).Hash
+    "SHA1"   = (Get-FileHash $PathToArtifact -Algorithm SHA1).Hash
+    "SHA256" = (Get-FileHash $PathToArtifact -Algorithm SHA256).Hash
+}
+
+$hashResults | ConvertTo-Json | Out-File "artifact_hashes.json"
+
+Write-Host "[+] Artifact hashes saved"
+```
+### Sample Output
+```jason{
+  "MD5": "bf92c19df77f08acb17c8ea9d9fd4d41",
+  "SHA1": "d367a9c9f1b41d8f87a088f52820be0475de3705",
+  "SHA256": "f1bc22345e74f6bd3c760c8678bc7ba71f44f205c4b14c8473dd918693fba7cc"
+}
+```
 
 
