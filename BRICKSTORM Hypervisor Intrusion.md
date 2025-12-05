@@ -5,7 +5,7 @@
 ## Scenario Overview
 
 A mid-sized cloud services provider begins receiving alerts for **suspicious outbound DNS and HTTPS traffic originating from a VMware ESXi hypervisor host**.  
-The affected host is part of the company’s internal virtualization platform and is **not expected to communicate directly with the public internet** except for approved update and management services.
+The affected host is part of the company’s internal virtualisation platform and is **not expected to communicate directly with the public internet** except for approved updates and management services.
 
 Additional telemetry quickly reveals:
 
@@ -73,11 +73,23 @@ Identify the initial entry point and method of compromise to understand how the 
 - Payload delivery was automated, leveraging default or weak configurations on the vCenter and ESXi hosts.
 - Early indicators suggest reconnaissance was performed prior to the actual compromise.
 
+## KQL – Privileged vCenter Authentication Review
 
+```kql
+SigninLogs
+| where AppDisplayName contains "vCenter"
+| where ConditionalAccessStatus == "success"
+| project
+    TimeGenerated,
+    UserPrincipalName,
+    IPAddress,
+    LocationDetails,
+    UserAgent
+```
 # Phase 3: Payload Collection and Analysis
 
 ## Objective
-Collect and analyze the malicious payloads deployed to understand the attacker’s capabilities and potential impact on the virtual infrastructure.
+Collect and analyse the malicious payloads deployed to understand the attacker’s capabilities and potential impact on the virtual infrastructure.
 
 ## Actions Taken
 - Extracted suspicious files from ESXi hosts and guest VMs.
@@ -91,3 +103,35 @@ Collect and analyze the malicious payloads deployed to understand the attacker�
 - PowerShell scripts were obfuscated and executed automatically on VM snapshots.
 - Network traffic revealed encrypted communications to external C2 servers.
 - Several indicators of compromise (IOCs) were identified, including IP addresses, file hashes, and domain names used for remote control.
+## KQL – Unauthorized Snapshot Activity Detection
+
+```kql
+AzureDiagnostics
+| where Category == "VMWareEventLog"
+| where Message has_any ("Snapshot Created", "CreateSnapshot")
+| project
+    TimeGenerated,
+    Computer,
+    Message,
+    InitiatingUser
+```
+
+
+# Phase 4: C2 Detection and Lateral Movement
+
+## Objective
+Identify command-and-control communications and track lateral movement to assess the scope of compromise.
+
+## Actions Taken
+- Monitored network logs for anomalous outbound traffic patterns from ESXi hosts and VMs.
+- Detected connections to suspicious external domains and IP addresses.
+- Correlated unusual administrative activity across multiple hosts.
+- Reviewed event logs for unexpected process execution and remote commands.
+- Tracked lateral movement attempts from compromised VMs to other hosts within the environment.
+
+## Observations
+- Persistent encrypted communications with external C2 servers were confirmed.
+- Attackers attempted lateral movement using compromised credentials and administrative tools.
+- Several VMs were accessed and manipulated, including unauthorised snapshot downloads.
+- The compromise affected multiple hosts, indicating a coordinated and automated attack.
+
