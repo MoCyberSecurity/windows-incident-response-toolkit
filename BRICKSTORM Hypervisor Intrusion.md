@@ -162,3 +162,113 @@ PowerShell – Staged Payload Identification
 Get-Process |
 Where-Object { $_.Path -like "*ProgramData*" }
 ```
+# Phase 5 – Hash Collection & IOC Documentation
+
+## Objective
+Collect and document all relevant Indicators of Compromise (IOCs) to support threat intelligence correlation, enhanced detection coverage, and remediation activities.
+
+---
+
+## Investigation Actions
+
+- Calculated cryptographic hashes of suspected malware binaries and scripts.
+- Extracted network indicators including C2 IP addresses and suspicious domains.
+- Documented compromised administrative user activity.
+- Cross-referenced collected artifacts with internal and external threat intelligence sources.
+- Structured IOC findings into a formatted detection reference list.
+
+---
+
+## PowerShell – Suspicious File Hash Collection
+
+```powershell
+Get-ChildItem "C:\ProgramData" -Recurse |
+Where-Object { $_.Extension -match "exe|ps1|dll" } |
+Get-FileHash -Algorithm SHA256 |
+Select-Object Path, Hash
+```
+# Phase 6 – Lateral Movement Investigation
+Goal
+
+Find attempts to pivot from the hypervisor to internal VM workloads.
+
+### SMB & RDP Burst Detection
+```kql
+DeviceNetworkEvents
+| where Protocol in ("SMB","RDP")
+| summarize AccessCount = count() by RemoteIP, DeviceName
+| where AccessCount > 50
+```
+
+### Finding:
+
+- Connection bursts from ESXi to production VMs.
+
+- Access to finance servers not normally managed via hypervisor shell.
+
+# Phase 7 – IOC Extraction
+Goal
+
+Prepare threat feed for containment and sharing.
+
+### PowerShell Artifact Extraction
+```powershell
+Get-FileHash -Path "C:\ProgramData\*.exe"
+```
+
+Indicators extracted:
+
+- C2 IP addresses
+
+- Backdoor binary hashes
+
+- Snapshot file names
+
+- Compromised admin accounts
+
+# Phase 8 – Containment Actions
+Applied Actions:
+
+✅ Hypervisor isolation from external networks
+✅ Forced credential reset for all vCenter administrators
+✅ Block C2 IPs at firewall & WAF
+✅ Disable snapshot-permission roles except for backup service
+✅ Rebuild affected hypervisor nodes
+
+# Phase 9 – Timeline Reconstruction
+Key Events
+Time	Observed Event
+T0	DNS beacon seen from ESXi host
+T1	Unusual admin authentication from foreign IP
+T2	VM snapshot creation across sensitive workloads
+T3	PowerShell artifacts identified
+T4	Lateral connections to internal VMs
+T5	ESXi isolation and credential resets initiated
+# Phase 10 – Final SOC Incident Report
+Report Sections:
+
+- Executive Summary
+
+- Attack Vector Analysis
+
+- Affected Assets
+
+- Threat Attribution: BRICKSTORM
+
+- IOC Lists
+
+- Detection Queries
+
+- Containment and Recovery Actions
+
+- Recommendations
+
+### Key Recommendations
+
+- Restrict hypervisor internet access
+
+- Enforce MFA for all virtualization admins
+
+- Monitor snapshot creation via SIEM
+
+- Deploy EDR or telemetry collectors to ESXi management zones
