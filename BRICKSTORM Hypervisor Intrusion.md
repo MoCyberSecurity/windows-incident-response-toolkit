@@ -272,3 +272,19 @@ Report Sections:
 - Monitor snapshot creation via SIEM
 
 - Deploy EDR or telemetry collectors to ESXi management zones
+
+## Detection Coverage Mapping – BRICKSTORM Hypervisor Intrusion
+
+| Detection Logic | ATT&CK Technique | Technique ID | Description |
+|------------------|------------------|----------------|----------------|
+| Abnormal DoH beaconing from ESXi hosts | Application Layer Protocol: DNS | T1071.004 | Detects encrypted outbound DNS-over-HTTPS communication from hypervisor management interfaces, consistent with C2 beaconing behavior. |
+| Unapproved external HTTPS connections from vSphere services | Application Layer Protocol: Web | T1071.001 | Flags sustained HTTPS sessions from ESXi or vCenter services to untrusted IP ranges indicating possible command-and-control traffic. |
+| Unauthorized vCenter administrative logins | Valid Accounts | T1078 | Identifies successful use of compromised or brute-forced administrator credentials outside approved geographic locations and business hours. |
+| Snapshot creation outside maintenance windows | Virtualization/SaaS: Snapshot Abuse | T1526 | Detects attackers abusing snapshot functionality to extract VM disk images, harvest credentials, or stage payload persistence. |
+| Snapshot downloads to unmanaged endpoints | Exfiltration Over C2 Channel | T1041 | Monitors outbound data transfers associated with snapshot export workflows and abnormal download activity tied to suspicious network destinations. |
+| Payload staging within guest VM directories | Tool Transfer | T1105 | Detects delivery of backdoor binaries and scripts staged inside production VM file systems to establish persistence and enable lateral access. |
+| ESXi-to-VM lateral movement via administrative protocols | Lateral Tool Transfer | T1570 | Detects internal SMB and RDP bursts initiated from compromised hypervisors attempting to pivot into guest workloads. |
+| Abnormal execution of remote administrative commands | Remote Services | T1021 | Flags suspicious command execution on multiple VMs initiated from the hypervisor management zone indicating coordinated lateral movement. |
+| Sustained encrypted sessions to low-reputation IP ranges | Command and Control | T1071 | Correlates long-duration encrypted network sessions associated with known BRICKSTORM infrastructure patterns used for remote tasking. |
+| Repeated failed and successful admin authentications | Brute Force | T1110 | Detects credential stuffing and password-guessing activity targeting ESXi and vCenter accounts preceding initial compromise. |
+
