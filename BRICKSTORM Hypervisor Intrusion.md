@@ -72,3 +72,22 @@ Identify the initial entry point and method of compromise to understand how the 
 - Brute-force attempts on ESXi administrative accounts were observed prior to payload execution.
 - Payload delivery was automated, leveraging default or weak configurations on the vCenter and ESXi hosts.
 - Early indicators suggest reconnaissance was performed prior to the actual compromise.
+
+
+# Phase 3: Payload Collection and Analysis
+
+## Objective
+Collect and analyze the malicious payloads deployed to understand the attacker’s capabilities and potential impact on the virtual infrastructure.
+
+## Actions Taken
+- Extracted suspicious files from ESXi hosts and guest VMs.
+- Collected PowerShell scripts, backdoor binaries, and configuration snapshots.
+- Captured network traffic associated with the payload to identify C2 communication patterns.
+- Examined file hashes and compared against threat intelligence feeds for known malware signatures.
+- Isolated affected systems to prevent further spread during analysis.
+
+## Observations
+- Malicious payloads included custom backdoor binaries capable of persistent access.
+- PowerShell scripts were obfuscated and executed automatically on VM snapshots.
+- Network traffic revealed encrypted communications to external C2 servers.
+- Several indicators of compromise (IOCs) were identified, including IP addresses, file hashes, and domain names used for remote control.
