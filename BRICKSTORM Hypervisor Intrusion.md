@@ -55,3 +55,20 @@ DeviceNetworkEvents
 | summarize ConnCount = count() by RemoteIP, bin(TimeGenerated, 5m)
 | where ConnCount > 100
 ```
+# Phase 2: Initial Access and Compromise
+
+## Objective
+Identify the initial entry point and method of compromise to understand how the attacker gained access to the virtual infrastructure.
+
+## Actions Taken
+- Reviewed perimeter and edge device logs for unusual authentication attempts.
+- Correlated firewall, VPN, and RDP logs to pinpoint suspicious connections.
+- Identified unauthorized administrative access attempts originating from external IP addresses.
+- Analyzed ESXi host logs for abnormal login events and failed authentication attempts.
+- Detected suspicious payload deployment targeting VM snapshots and configuration files.
+
+## Observations
+- Attack originated from an untrusted external IP range.
+- Brute-force attempts on ESXi administrative accounts were observed prior to payload execution.
+- Payload delivery was automated, leveraging default or weak configurations on the vCenter and ESXi hosts.
+- Early indicators suggest reconnaissance was performed prior to the actual compromise.
