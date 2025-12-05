@@ -163,7 +163,7 @@ index=endpoint SignatureStatus="Unsigned"
 ParentSignatureStatus="Signed"
 | table _time host ParentImage ImageLoaded SHA256
 ```
-## 6. Sima Detection Rule
+## 6. Sigma Detection Rule
 ```yaml
 title: Suspicious DLL Loaded From Writable Directory
 id: mo-4f21c110-dll-sideload
