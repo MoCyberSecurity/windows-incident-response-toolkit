@@ -135,3 +135,30 @@ Identify command-and-control communications and track lateral movement to assess
 - Several VMs were accessed and manipulated, including unauthorised snapshot downloads.
 - The compromise affected multiple hosts, indicating a coordinated and automated attack.
 
+### KQL – Snapshot Activity Outside Maintenance Windows
+
+```kql AzureDiagnostics
+| where Category == "VMWareEventLog"
+| where Message has "Snapshot"
+| extend Hour = datetime_part("hour", TimeGenerated)
+| where Hour < 7 or Hour > 19
+| project TimeGenerated, Computer, Message
+```
+### KQL – Data Exfiltration Correlation
+```kql
+DeviceNetworkEvents
+| where InitiatingProcessFileName has_any ("vmtoolsd.exe", "vmware-vmx.exe")
+| where RemoteIP !startswith "10."
+| summarize ConnCount=count() by DeviceName, RemoteIP
+| where ConnCount > 100
+```
+### PowerShell – Recent Script & Binary Discovery
+```powerhsell
+Get-ChildItem "C:\ProgramData" -Recurse |
+Where-Object { $_.CreationTime -gt (Get-Date).AddDays(-5) } |
+Select-Object FullName, CreationTime, Length
+
+PowerShell – Staged Payload Identification
+Get-Process |
+Where-Object { $_.Path -like "*ProgramData*" }
+```
