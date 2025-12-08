@@ -97,4 +97,41 @@ index=api_gateway_logs
 | Unauthorized endpoints | High |
 | Excessive scopes | High |
 
+------------------------------------------------------------------------------------------------------
+# Microsoft Sentinel – OAuth / API Abuse Detections
+
+## Objective
+Detect suspicious behavior linked to third-party OAuth and API usage:
+- Excessive token scopes
+- Token replay or reuse
+- Unauthorized API function access
+- Orphaned contractor API clients
+- Token usage after revocation
+
+---
+
+## Data Sources
+
+| Source | Purpose |
+|--------|-----------|
+| **ApiGatewayLogs** | API requests (client_id, token_hash, endpoint, IP, user agent) |
+| **OAuthLogs** | Token issuance, refresh, revocation, scopes |
+| **ContractorInventory (Watchlist)** | client_id, allowed_scopes, allowed_endpoints, contract_status, contract_end_date |
+
+---
+
+## Detections (KQL)
+
+---
+
+### Excessive OAuth Scope Assignment
+Detect contractors receiving scopes outside baseline role permissions.
+
+```kql
+OAuthLogs
+| where EventType in ("TokenIssued", "TokenRefreshed")
+| join kind=leftouter _GetWatchlist("ContractorInventory") on ClientID
+| where not(GrantedScopes has AllowedScopes)
+| project TimeGenerated, ClientID, GrantedScopes, AllowedScopes
+```
 
