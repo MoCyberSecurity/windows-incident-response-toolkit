@@ -134,4 +134,66 @@ OAuthLogs
 | where not(GrantedScopes has AllowedScopes)
 | project TimeGenerated, ClientID, GrantedScopes, AllowedScopes
 ```
+### Token Replay / Multi-Origin Use
 
+Detect tokens used from multiple IP addresses or devices.
+```
+ApiGatewayLogs
+| where ClientType == "ThirdPartyContractor"
+| summarize IPs=dcount(IPAddress), Agents=dcount(UserAgent)
+    by TokenHash, ClientID
+| where IPs > 1 or Agents > 1
+```
+### Unauthorised Endpoint Access
+
+Detect calls to endpoints not approved for that contractor.
+```kql
+ApiGatewayLogs
+| join kind=leftouter _GetWatchlist("ContractorInventory") on ClientID
+| where not(Endpoint has AllowedEndpoints)
+| project TimeGenerated, ClientID, Endpoint, AllowedEndpoints
+```
+### Orphaned Client Activity
+
+Detect API calls from terminated or expired contractor accounts.
+```kql
+ApiGatewayLogs
+| join kind=leftouter _GetWatchlist("ContractorInventory") on ClientID
+| where ContractStatus == "terminated"
+   or TimeGenerated > todatetime(ContractEndDate)
+```
+### Token Usage After Revocation
+
+Detect tokens used after revocation events.
+```kql
+let RevokedTokens =
+    OAuthLogs
+    | where EventType == "TokenRevoked"
+    | project TokenHash, RevocationTime=TimeGenerated;
+ApiGatewayLogs
+| join RevokedTokens on TokenHash
+| where TimeGenerated > RevocationTime
+```
+## SOC Triage Workflow
+
+1. Confirm client validity using ContractorInventory watchlist.
+
+2. Compare issued scopes vs. allowed scopes.
+
+3. Review token history for replay or revocation bypass.
+
+4. Inspect accessed endpoints and validate operational need.
+
+5. Disable clients or revoke tokens if violations are confirmed.
+
+6. Escalate to incident response for cross-tenant data or bulk access.
+
+# API / OAuth Risk Detection – Severity Guide (Sentinel)
+
+| Detection                   | Severity  |
+|------------------------------|-----------|
+| Revoked token use            | Critical  |
+| Orphaned client activity     | Critical  |
+| Token replay                 | High      |
+| Unauthorized endpoints       | High      |
+| Excessive scopes             | High      |
