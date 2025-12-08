@@ -14,7 +14,83 @@ Detect anomalous or risky behavior associated with OAuth-based API access by thi
 
 ## Detection Rules / Use-Cases
 
-### 1. Excessive Scope Assignment or Over-Privileged Token Issuance  
-**Purpose:** Detect when a contractor OAuth client is granted unusually broad or high-privilege scopes (beyond standard expected scopes) — which may indicate risky configuration or attempt to escalate privileges.
+# Splunk Detection – OAuth / API Abuse (Quick Guide)
 
-**Detection Logic (pseudocode / SIEM query):**  
+## Objective
+Detect suspicious OAuth token usage and third-party API abuse related to:
+- Excessive scopes
+- Token replay/reuse
+- Unauthorized endpoint access
+- Orphaned contractor clients
+
+---
+
+## Required Data
+
+- **API Gateway logs:** client_id, token_hash, endpoint, IP, user_agent  
+- **OAuth / IdP logs:** token_issued, token_revoked, scopes_granted  
+- **Client inventory lookup:** client_id, allowed_scopes, allowed_endpoints, contract_status, contract_end_date
+
+---
+
+## Key Splunk Detections
+
+---
+
+### Excessive OAuth Scopes
+```Splunk
+index=oauth_logs event_type="token_issued"
+| lookup ContractorInventory client_id OUTPUT allowed_scopes
+| where NOT like(scopes_granted, "%" . allowed_scopes . "%")```
+Detects: Over-privileged tokens.
+
+Token Replay / Multi-Origin Use
+```splunk
+Copy code
+index=api_gateway_logs
+| stats dc(ip_address) AS ip_count dc(user_agent) AS ua_count by token_hash
+| where ip_count > 1 OR ua_count > 1```
+Detects: Stolen or reused tokens.
+
+Unauthorized Endpoint Access
+splunk
+Copy code
+index=api_gateway_logs
+| lookup ContractorInventory client_id OUTPUT allowed_endpoints
+| where NOT like(endpoint, "%" . allowed_endpoints . "%")
+Detects: Broken function-level authorization.
+
+Orphaned Client Activity
+splunk
+Copy code
+index=api_gateway_logs
+| lookup ContractorInventory client_id OUTPUT contract_status contract_end_date
+| where contract_status="terminated" OR _time > contract_end_date
+Detects: API activity after contractor offboarding.
+
+Token Use After Revocation
+splunk
+Copy code
+index=api_gateway_logs
+| lookup RevokedTokens token_hash OUTPUT revocation_time
+| where _time > revocation_time
+Detects: Failed token invalidation.
+
+SOC Triage
+Identify client_id and check contractor status.
+
+Review issued scopes vs role baseline.
+
+Validate IP/device behavior for replay indicators.
+
+Confirm endpoint or tenant access violations.
+
+Revoke tokens, disable clients, escalate incidents if required.
+
+Severity Guide
+Detection	Severity
+Revoked token use	Critical
+Orphaned client activity	Critical
+Token replay	High
+Unauthorized endpoints	High
+Excessive scopes	High
