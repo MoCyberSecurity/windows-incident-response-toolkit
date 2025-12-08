@@ -55,7 +55,6 @@ index=api_gateway_logs
 
 Unauthorised Endpoint Access
 ```splunk
-Copy code
 index=api_gateway_logs
 | lookup ContractorInventory client_id OUTPUT allowed_endpoints
 | where NOT like(endpoint, "%" . allowed_endpoints . "%")
@@ -64,7 +63,6 @@ index=api_gateway_logs
 
 Orphaned Client Activity
 ```splunk
-Copy code
 index=api_gateway_logs
 | lookup ContractorInventory client_id OUTPUT contract_status contract_end_date
 | where contract_status="terminated" OR _time > contract_end_date
@@ -73,7 +71,6 @@ index=api_gateway_logs
 
 Token Use After Revocation
 ```splunk
-Copy code
 index=api_gateway_logs
 | lookup RevokedTokens token_hash OUTPUT revocation_time
 | where _time > revocation_time
