@@ -43,55 +43,62 @@ index=oauth_logs event_type="token_issued"
 | lookup ContractorInventory client_id OUTPUT allowed_scopes
 | where NOT like(scopes_granted, "%" . allowed_scopes . "%")
 ```
-Detects: Over-privileged tokens.
+### Detects: Over-privileged tokens.
 
 Token Replay / Multi-Origin Use
-```splunk
+```Splunk
 Copy code
 index=api_gateway_logs
 | stats dc(ip_address) AS ip_count dc(user_agent) AS ua_count by token_hash
-| where ip_count > 1 OR ua_count > 1```
-Detects: Stolen or reused tokens.
+| where ip_count > 1 OR ua_count > 1
+```
+### Detects: Stolen or reused tokens.
 
-Unauthorized Endpoint Access
-splunk
+Unauthorised Endpoint Access
+```splunk
 Copy code
 index=api_gateway_logs
 | lookup ContractorInventory client_id OUTPUT allowed_endpoints
 | where NOT like(endpoint, "%" . allowed_endpoints . "%")
-Detects: Broken function-level authorization.
+```
+### Detects: Broken function-level authorization.
 
 Orphaned Client Activity
-splunk
+```splunk
 Copy code
 index=api_gateway_logs
 | lookup ContractorInventory client_id OUTPUT contract_status contract_end_date
 | where contract_status="terminated" OR _time > contract_end_date
-Detects: API activity after contractor offboarding.
+```
+### Detects: API activity after contractor offboarding.
 
 Token Use After Revocation
-splunk
+```splunk
 Copy code
 index=api_gateway_logs
 | lookup RevokedTokens token_hash OUTPUT revocation_time
 | where _time > revocation_time
-Detects: Failed token invalidation.
+```
+### Detects: Failed token invalidation.
 
-SOC Triage
-Identify client_id and check contractor status.
+## SOC Triage
+1. Identify client_id and check contractor status.
 
-Review issued scopes vs role baseline.
+2. Review issued scopes vs role baseline.
 
-Validate IP/device behavior for replay indicators.
+3. Validate IP/device behavior for replay indicators.
 
-Confirm endpoint or tenant access violations.
+4. Confirm endpoint or tenant access violations.
 
-Revoke tokens, disable clients, escalate incidents if required.
+5. Revoke tokens, disable clients, escalate incidents if required.
+## Severity Guide
 
-Severity Guide
-Detection	Severity
-Revoked token use	Critical
-Orphaned client activity	Critical
-Token replay	High
-Unauthorized endpoints	High
-Excessive scopes	High
+| Detection | Severity |
+|-----------|------------|
+| Revoked token use | Critical |
+| Orphaned client activity | Critical |
+| Token replay | High |
+| Unauthorized endpoints | High |
+| Excessive scopes | High |
+
+
