@@ -47,7 +47,6 @@ index=oauth_logs event_type="token_issued"
 
 Token Replay / Multi-Origin Use
 ```Splunk
-Copy code
 index=api_gateway_logs
 | stats dc(ip_address) AS ip_count dc(user_agent) AS ua_count by token_hash
 | where ip_count > 1 OR ua_count > 1
