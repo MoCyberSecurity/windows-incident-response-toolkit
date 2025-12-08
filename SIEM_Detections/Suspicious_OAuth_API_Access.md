@@ -41,7 +41,8 @@ Detect suspicious OAuth token usage and third-party API abuse related to:
 ```Splunk
 index=oauth_logs event_type="token_issued"
 | lookup ContractorInventory client_id OUTPUT allowed_scopes
-| where NOT like(scopes_granted, "%" . allowed_scopes . "%")```
+| where NOT like(scopes_granted, "%" . allowed_scopes . "%")
+```
 Detects: Over-privileged tokens.
 
 Token Replay / Multi-Origin Use
