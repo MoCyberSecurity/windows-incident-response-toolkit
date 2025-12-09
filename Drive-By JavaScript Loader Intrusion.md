@@ -114,7 +114,16 @@ DeviceProcessEvents
    or ProcessCommandLine contains "Invoke-WebRequest"
    or ProcessCommandLine contains "IEX"
 ```
-### Step 4 – NetSupport RAT Artifact Detection
+**SPL Query:**
+
+```
+index=endpoint
+| search process_name IN ("powershell.exe","pwsh.exe")
+| search process_command_line="*DownloadString*"
+    OR process_command_line="*Invoke-WebRequest*"
+    OR process_command_line="*IEX*"
+```
+### Step 4 – NetSupport RAT Artefact Detection
 
 Search for file system indicators and persistence mechanisms related to NetSupport deployments.
 
@@ -127,11 +136,26 @@ DeviceFileEvents
 | where FolderPath contains "ProgramData\\NetSupport"
    or FileName == "winsvcmgr.exe"
 ```
+**SPL Example:**
+```
+index=wineventlog EventCode=4663
+| search Object_Name="*\\ProgramData\\NetSupport\\*" OR Object_Name="*\\winsvcmgr.exe"
+
+```
+
 Persistence hunting:
+**KQL:**
 ```
 DeviceRegistryEvents
 | where RegistryKey contains "Run"
 | where RegistryValueData contains "NetSupport"
+```
+**SPL:**
+```
+index=wineventlog EventCode=4657 OR EventCode=4663
+| search Object_Name="*\\Run\\*" AND Object_Value="*NetSupport*"
+| table _time, ComputerName, Subject_User_Name, Object_Name, Object_Value
+
 ```
 ### Step 5 – Network Command-and-Control Validation
 
@@ -143,14 +167,20 @@ Inspect outbound sessions from the endpoint for:
 - Geographically anomalous C2 destinations
 
 ---
-
+**KQL**
 ```kusto
 DeviceNetworkEvents
 | where DeviceName == "<Affected-Host>"
 | where RemotePort == 443
 | where not(RemoteUrl contains "trusted_provider")
 ```
-
+**SPL**
+```
+index=wineventlog EventCode=5156
+| where ComputerName="<Affected-Host>" AND Dest_Port=443
+| where NOT like(Dest_Host,"*trusted_provider*")
+| table _time, ComputerName, Application_Name, Dest_IP, Dest_Host, Dest_Port
+```
 ### Step 6 – Incident Enrichment
 
 In Microsoft Sentinel:
@@ -162,8 +192,25 @@ In Microsoft Sentinel:
   - Executed processes
 - Visualize chain: **Browser → mshta.exe → PowerShell → NetSupport RAT → C2**
 
----
 
+In Splunk:
+
+- Link entity relationships:
+  - **User account:** `Subject_User_Name`
+  - **Infected device:** `ComputerName`
+  - **Malicious domain/IP:** `Dest_IP`, `Dest_Host`
+  - **Executed processes:** `New_Process_Name`, `Parent_Process_Name`
+
+- Visualize chain: **Browser → mshta.exe → PowerShell → NetSupport RAT → C2**
+
+```spl
+(index=wineventlog EventCode=4688 | search New_Process_Name="*mshta.exe" OR New_Process_Name="*powershell.exe" OR New_Process_Name="*pwsh.exe")
+ OR
+(index=wineventlog EventCode=5156 Dest_Port=443)
+| table _time, ComputerName, Subject_User_Name, New_Process_Name, Parent_Process_Name, Dest_IP, Dest_Host
+| sort _time
+```
+---
 ---
 
 ### Step 7 – Containment Actions
