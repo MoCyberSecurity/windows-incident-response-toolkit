@@ -144,6 +144,7 @@ index=wineventlog EventCode=4663
 ```
 
 Persistence hunting:
+
 **KQL:**
 ```
 DeviceRegistryEvents
