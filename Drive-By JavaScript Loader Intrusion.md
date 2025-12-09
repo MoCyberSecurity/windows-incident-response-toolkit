@@ -132,3 +132,61 @@ DeviceNetworkEvents
 | where not(RemoteUrl contains "trusted_provider")
 ```
 
+### Step 6 – Incident Enrichment
+
+In Microsoft Sentinel:
+
+- Link entity relationships:
+  - User account
+  - Infected device
+  - Malicious domain/IP
+  - Executed processes
+- Visualize chain: **Browser → mshta.exe → PowerShell → NetSupport RAT → C2**
+
+---
+
+---
+
+### Step 7 – Containment Actions
+
+SOC analyst response:
+
+- Immediately isolate affected endpoint
+
+- Kill malicious PowerShell and RAT processes
+
+- Block identified attacker domains/IPs
+
+- Remove registry persistence entries
+
+- Reset impacted user credentials
+
+- Scoped hunting for lateral movement
+
+### Adversary Tradecraft Summary
+Kill Chain
+
+1. Initial Access: Compromised website + obfuscated JavaScript loader
+
+2. Execution: HTA launched using mshta.exe
+
+3. Payload Delivery: PowerShell stager downloads RAT
+
+4. Persistence: Registry run-keys or scheduled task creation
+
+5. C2: Encrypted HTTPS sessions to external servers
+
+6. Impact: Full remote access, surveillance, and credential theft
+
+## MITRE ATT&CK Mapping
+
+| Phase           | Technique              | ID        | Description                                   |
+|-----------------|-------------------------|-----------|-----------------------------------------------|
+| Initial Access  | Drive-by Compromise    | T1189     | Malicious JavaScript loader via compromised site |
+| Execution       | Mshta LOLBin            | T1218.005 | HTA execution via system binary |
+| Execution       | PowerShell              | T1059.001 | Stager execution and payload loader |
+| Command & Control | Ingress Tool Transfer | T1105     | Download RAT from attacker infrastructure |
+| Persistence     | Registry Run Keys       | T1547.001 | Auto-start execution |
+| Remote Control  | Remote Access Software | T1219     | NetSupport RAT deployment |
+| C2               | Encrypted Channel     | T1573     | RAT beaconing over HTTPS |
+
