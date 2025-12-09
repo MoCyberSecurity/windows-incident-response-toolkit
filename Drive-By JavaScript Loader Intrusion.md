@@ -114,4 +114,21 @@ DeviceRegistryEvents
 | where RegistryKey contains "Run"
 | where RegistryValueData contains "NetSupport"
 ```
+### Step 5 – Network Command-and-Control Validation
+
+Inspect outbound sessions from the endpoint for:
+
+- Rare or newly registered domains  
+- Dynamic DNS patterns  
+- Encrypted sessions to unknown IPs  
+- Geographically anomalous C2 destinations
+
+---
+
+```kusto
+DeviceNetworkEvents
+| where DeviceName == "<Affected-Host>"
+| where RemotePort == 443
+| where not(RemoteUrl contains "trusted_provider")
+```
 
