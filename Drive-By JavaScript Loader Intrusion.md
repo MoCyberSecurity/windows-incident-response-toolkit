@@ -57,3 +57,61 @@ Confirm:
 - Command-line references to remote .hta payload or obfuscated URLs
 
 - Parent processes related to browser activity or HTML execution
+
+### Step 2 – Correlate Browser Telemetry
+
+Objective:
+
+- Identify **recent browsing activity** to potentially compromised websites preceding execution
+- Extract suspicious iFrame or script execution patterns where logs are available
+
+---
+
+**KQL Sample:**
+
+```kusto
+DeviceNetworkEvents
+| where DeviceName == "<Affected-Host>"
+| where RemoteUrl !contains "known_safe_domain"
+| where Timestamp between (ago(30m)..now())
+```
+### Step 3 – Detect PowerShell Stager Execution
+
+Analyse PowerShell command-lines for:
+
+- `Invoke-Expression (IEX)`
+- `DownloadString`
+- `Invoke-WebRequest`
+- Base64 or gzip encoded payload delivery
+
+---
+
+**KQL Query:**
+
+```kusto
+DeviceProcessEvents
+| where FileName in ("powershell.exe", "pwsh.exe")
+| where ProcessCommandLine contains "DownloadString"
+   or ProcessCommandLine contains "Invoke-WebRequest"
+   or ProcessCommandLine contains "IEX"
+```
+### Step 4 – NetSupport RAT Artifact Detection
+
+Search for file system indicators and persistence mechanisms related to NetSupport deployments.
+
+---
+
+**KQL Example:**
+
+```kusto
+DeviceFileEvents
+| where FolderPath contains "ProgramData\\NetSupport"
+   or FileName == "winsvcmgr.exe"
+```
+Persistence hunting:
+```
+DeviceRegistryEvents
+| where RegistryKey contains "Run"
+| where RegistryValueData contains "NetSupport"
+```
+
