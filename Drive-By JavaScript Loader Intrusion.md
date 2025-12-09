@@ -1,5 +1,5 @@
 # 🚨 JS#SMUGGLER → NetSupport RAT  
-### **Microsoft Sentinel Investigation Scenario 3 – Drive-By JavaScript Loader Intrusion**
+### ** Scenario 3 – Drive-By JavaScript Loader Intrusion**
 
 ---
 
