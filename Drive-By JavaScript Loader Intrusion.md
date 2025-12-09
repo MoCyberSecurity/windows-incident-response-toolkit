@@ -47,6 +47,16 @@ DeviceProcessEvents
 | where ProcessCommandLine has_any ("http://","https://",".hta")
 | project Timestamp, DeviceName, InitiatingProcessAccountName, FileName, ProcessCommandLine, ParentProcessName
 ```
+### Detection Logic (Splunk)
+
+```kusto
+index=endpoint
+| search process_name="mshta.exe"
+| search process_command_line="*http://*" OR process_command_line="*https://*" OR process_command_line="*.hta*"
+| table _time host user process_name process_command_line parent_process_name
+
+```
+
 ### Investigation Workflow
 ### Step 1 – Validate Initial Trigger
 
@@ -74,6 +84,15 @@ DeviceNetworkEvents
 | where DeviceName == "<Affected-Host>"
 | where RemoteUrl !contains "known_safe_domain"
 | where Timestamp between (ago(30m)..now())
+```
+
+**SPL Sample:**
+```
+index=endpoint
+| search host="<Affected-Host>"
+| where NOT like(RemoteUrl, "%known_safe_domain%")
+| where _time >= relative_time(now(), "-30m")
+
 ```
 ### Step 3 – Detect PowerShell Stager Execution
 
