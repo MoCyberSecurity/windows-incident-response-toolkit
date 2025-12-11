@@ -289,33 +289,42 @@ These samples are sanitized but realistic enough to demonstrate SIEM investigati
 
 This decision tree guides the analyst from initial alert to final classification without relying on guesswork.
 
+## 6. Analyst Decision Tree
+
+```
 Start
-│
-├── 1. Did the alert originate from a Node.js process running server-side?
-│ ├── No → False positive. Close ticket.
-│ └── Yes → Continue.
-│
-├── 2. Is the process spawning abnormal commands (bash, sh, curl, wget)?
-│ ├── No → Requires deeper manual review. Possible low-risk anomaly.
-│ └── Yes → Continue.
-│
-├── 3. Does the host show outbound connections to suspicious IPs or uncommon ports?
-│ ├── No → Still suspicious. Check file access and service creation.
-│ └── Yes → Likely active exploitation. Continue.
-│
-├── 4. Are sensitive files accessed (.env, logs, config files)?
-│ ├── No → Possible early-stage exploitation. Continue monitoring.
-│ └── Yes → Confirmed credential access. Continue.
-│
-├── 5. Any signs of persistence (systemd service, cron job, startup script)?
-│ ├── No → Partial compromise without persistence.
-│ └── Yes → Full compromise. Immediate containment required.
-│
-├── 6. Attempted lateral movement or internal API calls?
-│ ├── No → Contain and move to eradication.
-│ └── Yes → Escalate to Incident Response lead.
-│
-└── End – Classification
+|
+|-- 1. Did the alert originate from a Node.js process running server-side?
+|       |-- No → False positive. Close ticket.
+|       `-- Yes → Continue.
+|
+|-- 2. Is the process spawning abnormal commands (bash, sh, curl, wget)?
+|       |-- No → Requires deeper manual review. Possible low-risk anomaly.
+|       `-- Yes → Continue.
+|
+|-- 3. Does the host show outbound connections to suspicious IPs or uncommon ports?
+|       |-- No → Still suspicious. Check file access and service creation.
+|       `-- Yes → Likely active exploitation. Continue.
+|
+|-- 4. Are sensitive files accessed (.env, logs, config files)?
+|       |-- No → Possible early-stage exploitation. Continue monitoring.
+|       `-- Yes → Confirmed credential access. Continue.
+|
+|-- 5. Any signs of persistence (systemd service, cron job, startup script)?
+|       |-- No → Partial compromise without persistence.
+|       `-- Yes → Full compromise. Immediate containment required.
+|
+|-- 6. Attempted lateral movement or internal API calls?
+|       |-- No → Contain and move to eradication.
+|       `-- Yes → Escalate to Incident Response lead.
+|
+`-- End – Classification
+        - Steps 2, 3, 4 triggered → High Confidence RCE
+        - Step 5 triggered → Full System Compromise
+        - Only step 2 triggered → Suspicious Execution (Needs Monitoring)
+        - None triggered → Benign
+```
+
 - If steps 2, 3 and 4 triggered → High Confidence RCE
 - If step 5 triggered → Full System Compromise
 - If only step 2 triggered → Suspicious Execution (Needs Monitoring)
