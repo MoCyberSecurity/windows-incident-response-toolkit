@@ -359,4 +359,4 @@ Start
 **End of React2Shell Investigation Scenario**
 
 
-## 8. Lessons Learned & Preventive Controls
+
