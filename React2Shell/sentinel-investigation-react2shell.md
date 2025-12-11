@@ -149,6 +149,47 @@ index=file*
 
 ## 4. Triage Workflow
 
+This workflow shows how a SOC analyst should investigate and validate the React2Shell activity, step by step.
+
+1. **Alert Triage**
+   - Review triggered detection alerts (Node.js suspicious commands, reverse shell connections, file downloads).
+   - Confirm alert validity by checking process lineage and network connections.
+
+2. **Process Investigation**
+   - Identify all processes initiated by `node` or other suspicious binaries.
+   - Collect command-line arguments and execution time.
+   - Correlate with user sessions and IP addresses.
+
+3. **Network Correlation**
+   - Check outbound connections from affected hosts.
+   - Look for repeated or periodic connections to unusual external IPs (e.g., `185.203.112.37`) and ports (`4444`, `1337`, `8081`).
+   - Flag any connections not associated with normal business activity.
+
+4. **File and Configuration Review**
+   - Identify access to sensitive files like `.env`, application logs, or configuration backups.
+   - Verify if any unauthorized file transfers occurred.
+
+5. **Persistence Assessment**
+   - Review any new services, scheduled tasks, or startup scripts created.
+   - Confirm if these match normal administrative activity or are indicators of compromise.
+
+6. **Scope Determination**
+   - Enumerate all systems touched by the attacker using process and network correlation.
+   - Flag any lateral movement attempts within internal services or cloud resources.
+
+7. **IOC Collection**
+   - Collect all Indicators of Compromise: IP addresses, domains, file hashes, and suspicious process command lines.
+   - Store in a central repository for enrichment and alert tuning.
+
+8. **Escalation & Documentation**
+   - If confirmed, escalate to L3/IR team.
+   - Document findings clearly in the incident ticket, including MITRE ATT&CK mapping, impacted assets, and evidence links.
+
+---
+
+**Note:** This workflow assumes SIEM, endpoint telemetry, and network monitoring are available. Each step should be reproducible and defensible in an actual SOC audit or interview scenario.
+
+
 ## 5. Evidence Pack (Log Samples)
 
 ## 6. Analyst Decision Tree
