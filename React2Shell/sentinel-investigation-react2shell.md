@@ -60,6 +60,83 @@ The activity was detected when abnormal command execution logs and outbound reve
 
 ## 3. Detection Logic (KQL + Splunk SPL)
 
+### A. Suspicious Command Execution (Node.js child_process)
+
+#### KQL – Abnormal Shell Commands from Node Processes
+DeviceProcessEvents
+| where ProcessCommandLine has_any ("child_process", "exec(", "bash -c", "nc -e", "curl", "wget")
+| where InitiatingProcessFileName =~ "node" or FileName =~ "node"
+| project Timestamp, DeviceName, FileName, ProcessCommandLine, InitiatingProcessParentFileName
+
+#### Splunk SPL – Node.js Launching Suspicious Commands
+index=main sourcetype=process*
+("child_process" OR "exec(" OR "bash -c" OR "nc -e" OR curl OR wget)
+ParentImage="*node*" OR Image="*node*"
+| table _time host Image ParentImage CommandLine
+
+---
+
+### B. Reverse Shell Behavior (Outbound to Suspicious IP)
+
+#### KQL – Outbound Reverse Shell Indicators
+DeviceNetworkEvents
+| where RemotePort in ("4444","1337","8081")
+| where RemoteIP in ("185.203.112.37")
+| where InitiatingProcessFileName has_any ("bash","sh","node")
+| project Timestamp, DeviceName, InitiatingProcessFileName, RemoteIP, RemotePort
+
+#### Splunk SPL – Reverse Shell Connection
+index=network* 
+dest_port IN (4444,1337,8081)
+dest_ip="185.203.112.37"
+(Image="*bash*" OR Image="*sh*" OR Image="*node*")
+| table _time src_ip dest_ip dest_port process
+
+---
+
+### C. Ingress Tool Transfer (Malicious Download)
+
+#### KQL – File Download via curl, wget, or Node Fetch
+DeviceProcessEvents
+| where ProcessCommandLine has_any ("curl http", "wget http", "fetch(")
+| project Timestamp, DeviceName, ProcessCommandLine
+
+#### Splunk SPL – Suspicious Download
+index=process* 
+(CommandLine="*curl http*" OR CommandLine="*wget http*" OR CommandLine="*fetch(*")
+| table _time host CommandLine
+
+---
+
+### D. Persistence via systemd Service
+
+#### KQL – Creation of New systemd Service
+DeviceProcessEvents
+| where ProcessCommandLine has_all ("systemctl", "enable")
+| project Timestamp, DeviceName, ProcessCommandLine
+
+#### Splunk SPL – New systemd Service Creation
+index=process* 
+(CommandLine="*systemctl enable*" OR CommandLine="*systemctl start*")
+| table _time host CommandLine
+
+---
+
+### E. Access to Sensitive Files (Credential Harvesting)
+
+#### KQL – Access to .env and Log Files
+DeviceFileEvents
+| where FileName has_any (".env", "app.log")
+| where InitiatingProcessFileName in ("node","bash","sh")
+| project Timestamp, DeviceName, FileName, InitiatingProcessFileName
+
+#### Splunk SPL – Sensitive File Access
+index=file* 
+(FileName="*.env" OR FileName="app.log")
+(Image="*node*" OR Image="*bash*" OR Image="*sh*")
+| table _time host FileName Image
+
+
 ## 4. Triage Workflow
 
 ## 5. Evidence Pack (Log Samples)
