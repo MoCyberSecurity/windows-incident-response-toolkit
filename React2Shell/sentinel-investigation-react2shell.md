@@ -331,6 +331,32 @@ Start
 - If none triggered → Benign
 
 
-## 7. Containment & Eradication
+## 7. Containment & Eradication + Lessons Learned
+
+### Containment Actions
+1. Isolate affected host(s) from production network immediately.
+2. Block outbound connections to identified malicious IPs (e.g., 185.203.112.37) at firewall/WAF.
+3. Terminate suspicious Node.js processes and any spawned shells.
+4. Disable rogue services or cron jobs created by the attacker.
+5. Change credentials or rotate API keys that may have been exposed.
+
+### Eradication Steps
+1. Remove downloaded payloads and scripts from all affected systems.
+2. Patch the vulnerable React endpoint to prevent SSTI exploitation.
+3. Review web server configuration and secure input validation.
+4. Conduct a full malware scan of affected hosts to ensure no hidden persistence.
+5. Monitor logs for 7–14 days to ensure no repeat exploitation.
+
+### Lessons Learned
+- **Vulnerability Management:** Input sanitization in React apps is critical; even minor template injection can lead to full server compromise.
+- **Detection Coverage:** Ensure SIEM rules cover suspicious Node.js command execution and outbound unusual connections.
+- **Incident Response:** Early triage and structured decision trees reduce dwell time and improve confidence in classification.
+- **Documentation:** Keep sanitized sample logs in GitHub for training and proof-of-concept IR exercises.
+- **Continuous Improvement:** Review MITRE ATT&CK mapping and update SOC content packs as new exploitation techniques emerge.
+
+---
+
+**End of React2Shell Investigation Scenario**
+
 
 ## 8. Lessons Learned & Preventive Controls
