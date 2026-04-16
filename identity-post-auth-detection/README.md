@@ -44,14 +44,14 @@ Correlated together, they represent a high-confidence indicator of identity comp
 
 
 detections/
-├── splunk/ # SPL detections
-├── sentinel/ # KQL detections (Microsoft Sentinel)
-└── aws/ # CloudTrail-based detections
+├── splunk/
+├── sentinel/
+└── aws/
 
-correlations/ # Multi-signal detection logic
-mappings/ # Data source and field mappings
-tuning/ # Thresholds, false positives, allowlists
-playbooks/ # Analyst triage and response guidance
+correlations/
+mappings/
+tuning/
+playbooks
 
 
 ---
