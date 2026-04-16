@@ -1,0 +1,82 @@
+// Detection: Finance Mailbox Access Spike
+// File: detections/sentinel/finance_mailbox_access_spike.kql
+// Purpose:
+// Detect unusual spikes in mailbox item access for finance-sensitive users
+// using MailItemsAccessed events from Microsoft 365 audit data.
+//
+// Notes:
+// - MailItemsAccessed is useful for investigating compromised mailboxes.
+// - This query assumes OfficeActivity is populated from Microsoft 365 audit logs.
+// - Adjust the FinanceUsers list or replace it with a watchlist / identity table
+//   in production.
+
+let LookbackPeriod = 14d;
+let DetectionWindow = 1h;
+let MinCurrentAccessCount = 20;
+let SpikeMultiplier = 3.0;
+
+// Replace with a watchlist or identity table in production.
+let FinanceUsers = dynamic([
+    "finance@contoso.com",
+    "ap@contoso.com",
+    "payments@contoso.com",
+    "procurement@contoso.com",
+    "accounts.payable@contoso.com"
+]);
+
+let Baseline =
+OfficeActivity
+| where TimeGenerated between (ago(LookbackPeriod) .. ago(DetectionWindow))
+| where Workload == "Exchange"
+| where Operation == "MailItemsAccessed"
+| extend NormalizedUser = tolower(UserId)
+| where NormalizedUser in (FinanceUsers)
+| summarize
+    BaselineAvgPerHour = avg(EventCount),
+    BaselineMaxPerHour = max(EventCount)
+    by NormalizedUser
+    // Build historical hourly counts first
+    with (
+        OfficeActivity
+        | where TimeGenerated between (ago(LookbackPeriod) .. ago(DetectionWindow))
+        | where Workload == "Exchange"
+        | where Operation == "MailItemsAccessed"
+        | extend NormalizedUser = tolower(UserId)
+        | where NormalizedUser in (FinanceUsers)
+        | summarize EventCount = count() by NormalizedUser, bin(TimeGenerated, 1h)
+    );
+
+let CurrentWindow =
+OfficeActivity
+| where TimeGenerated >= ago(DetectionWindow)
+| where Workload == "Exchange"
+| where Operation == "MailItemsAccessed"
+| extend NormalizedUser = tolower(UserId)
+| where NormalizedUser in (FinanceUsers)
+| summarize
+    CurrentAccessCount = count(),
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated),
+    ClientIPs = make_set(ClientIP, 10),
+    UserAgents = make_set(ClientInfoString, 10)
+    by NormalizedUser;
+
+CurrentWindow
+| join kind=leftouter Baseline on NormalizedUser
+| extend BaselineAvgPerHour = coalesce(BaselineAvgPerHour, 0.0)
+| extend BaselineMaxPerHour = coalesce(BaselineMaxPerHour, 0.0)
+| extend SpikeRatio = iff(BaselineAvgPerHour > 0, todouble(CurrentAccessCount) / BaselineAvgPerHour, 999.0)
+| where CurrentAccessCount >= MinCurrentAccessCount
+| where CurrentAccessCount > BaselineMaxPerHour or SpikeRatio >= SpikeMultiplier
+| project
+    DetectionTime = now(),
+    UserId = NormalizedUser,
+    CurrentAccessCount,
+    BaselineAvgPerHour,
+    BaselineMaxPerHour,
+    SpikeRatio,
+    FirstSeen,
+    LastSeen,
+    ClientIPs,
+    UserAgents
+| order by SpikeRatio desc, CurrentAccessCount desc
