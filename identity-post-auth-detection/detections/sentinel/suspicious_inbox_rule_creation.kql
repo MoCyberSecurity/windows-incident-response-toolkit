@@ -27,3 +27,5 @@ OfficeActivity
     SuspiciousKeywords,
     RuleDetails
 | order by TimeGenerated desc
+
+| where ForwardingFlag == "Yes" or SuspiciousKeywords == "Yes"
