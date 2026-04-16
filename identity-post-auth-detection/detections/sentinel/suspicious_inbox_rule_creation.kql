@@ -1,0 +1,29 @@
+// Detection: Suspicious Inbox Rule Creation
+// Purpose: Identify creation or modification of inbox rules that may indicate
+// post-authentication persistence, data exfiltration, or concealment activity.
+
+// Data Source: OfficeActivity (Microsoft 365 Unified Audit Log)
+
+OfficeActivity
+| where Workload == "Exchange"
+| where Operation in ("New-InboxRule", "Set-InboxRule", "UpdateInboxRules")
+| extend RuleDetails = tostring(Parameters)
+| extend ForwardingFlag = iff(
+    RuleDetails has_any ("ForwardTo", "RedirectTo", "ForwardAsAttachmentTo"),
+    "Yes",
+    "No"
+)
+| extend SuspiciousKeywords = iff(
+    RuleDetails has_any ("delete", "move to deleted items", "mark as read", "archive"),
+    "Yes",
+    "No"
+)
+| project
+    TimeGenerated,
+    UserId,
+    ClientIP,
+    Operation,
+    ForwardingFlag,
+    SuspiciousKeywords,
+    RuleDetails
+| order by TimeGenerated desc
