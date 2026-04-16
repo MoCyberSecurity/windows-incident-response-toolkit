@@ -1,0 +1,78 @@
+// Detection: Risky Sign-In Followed by Inbox Rule Creation
+// Purpose: Identify users with a successful risky or anomalous sign-in
+// followed by inbox rule creation or modification within a short time window.
+// This is intended to detect post-authentication mailbox abuse consistent
+// with BEC, persistence, or covert forwarding activity.
+
+// Data Sources:
+// - SigninLogs
+// - OfficeActivity
+
+let TimeWindow = 30m;
+
+let RiskySignins =
+SigninLogs
+| where TimeGenerated >= ago(1d)
+| where ResultType == 0
+| where RiskLevelDuringSignIn in ("medium", "high")
+    or RiskState in ("atRisk", "confirmedCompromised")
+| project
+    SigninTime = TimeGenerated,
+    UserPrincipalName,
+    IPAddress,
+    AppDisplayName,
+    ClientAppUsed,
+    ConditionalAccessStatus,
+    RiskLevelDuringSignIn,
+    RiskState,
+    CorrelationId;
+
+let InboxRuleChanges =
+OfficeActivity
+| where TimeGenerated >= ago(1d)
+| where Workload == "Exchange"
+| where Operation in ("New-InboxRule", "Set-InboxRule", "UpdateInboxRules")
+| extend RuleDetails = tostring(Parameters)
+| extend ForwardingFlag = iff(
+    RuleDetails has_any ("ForwardTo", "RedirectTo", "ForwardAsAttachmentTo"),
+    "Yes",
+    "No"
+)
+| extend ConcealmentFlag = iff(
+    RuleDetails has_any ("delete", "move to deleted items", "mark as read", "archive"),
+    "Yes",
+    "No"
+)
+| project
+    RuleTime = TimeGenerated,
+    UserId,
+    ClientIP,
+    Operation,
+    ForwardingFlag,
+    ConcealmentFlag,
+    RuleDetails;
+
+RiskySignins
+| join kind=inner InboxRuleChanges on $left.UserPrincipalName == $right.UserId
+| where RuleTime between (SigninTime .. SigninTime + TimeWindow)
+| extend MinutesBetween = datetime_diff("minute", RuleTime, SigninTime)
+| project
+    SigninTime,
+    RuleTime,
+    MinutesBetween,
+    UserPrincipalName,
+    IPAddress,
+    ClientIP,
+    AppDisplayName,
+    ClientAppUsed,
+    ConditionalAccessStatus,
+    RiskLevelDuringSignIn,
+    RiskState,
+    Operation,
+    ForwardingFlag,
+    ConcealmentFlag,
+    RuleDetails,
+    CorrelationId
+| order by RuleTime desc
+
+| where ForwardingFlag == "Yes" or ConcealmentFlag == "Yes"
