@@ -42,7 +42,7 @@ Correlated together, they represent a high-confidence indicator of identity comp
 
 ## Repository Structure
 
-
+```text
 detections/
 ├── splunk/
 ├── sentinel/
@@ -51,8 +51,8 @@ detections/
 correlations/
 mappings/
 tuning/
-playbooks
-
+playbooks/
+```
 
 ---
 
